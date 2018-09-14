@@ -17,8 +17,8 @@ The specific goals / steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a SVM classifier
 * Normalize features and randomize a selection for training and testing.
-* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
+* Implement a sliding-window technique and use the trained classifier to search for vehicles in images.
+* Run the pipeline on a video stream and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
 ## Source code
@@ -34,7 +34,7 @@ All source code referenced below is contained in the [IPython notebook](./Detect
 
 #### Extracting HOG features from the training images
 
-The code for this step is contained in the code cell of the IPython notebook under "Feature Extraction".  The get_hog_features() and  extract_hog_features() functions were mostly taken from the course materials to extract a set of HOG features from a given image.      
+The code for this step is contained in the code cells of the IPython notebook under "Feature Extraction".  The 'get_hog_features()' and  'extract_hog_features()' functions were mostly taken from the course materials to extract a set of HOG features from a given image.      
 
 In the "Read in Images" section, I started by reading in all the `vehicle` and `non-vehicle` images from the provided data set.  In total, there were 8792 Car images, and 8958 non-car images.  
 
@@ -78,9 +78,9 @@ Given this data, the examination of various color channels, and the training spe
 
 #### Training the classifier
 
-In the code section "Training the final classifier" I trained a SVM using the GridSearchCV to find the best parameters.  This method chose a "RBF" kernel with a C value of 10, and I reached a final test accuracy of 99.44%.  
+In the code section "Training the final classifier" I trained a SVM using the 'GridSearchCV()' function from scikitlearn module to find the best parameters.  This method chose a "RBF" kernel with a C value of 10, and reached a test accuracy of 99.44%.  
 
-The GridSearchCV() function took over 20 minutes to run, so at this point I stored my classifier in a pickle file that I could reload later. 
+The 'GridSearchCV()' function took over 20 minutes to run, so at this point I stored my classifier in a pickle file that I could reload later. 
 
 ### Sliding Window Search
 
@@ -90,7 +90,7 @@ I wanted to search different window positions at different scales.  To determine
 
 ![alt text][image2]
 
-Under the "Configure sliding window pipeline" code section, I setup a draw_boxes() function (adapted from find_cars() in lesson materials) to see how the sliding windows would ultimately look on the images.  I came up with the following window areas and scales:
+Under the "Configure sliding window pipeline" code section, I setup a 'draw_boxes()' function (adapted from 'find_cars()' in lesson materials) to see how the sliding windows would ultimately look on the images.  I came up with the following window areas and scales:
 
 |    Zone    | Y Search area  |  Window Scale  |
 |:----------:|:--------------:|:--------------:|
@@ -105,13 +105,13 @@ I plotted the resulting boxes on the image:
 
 ![alt text][image3]
 
-I then adapted the find_cars() function from the course materials to take an image, window parameters, a classifier, and HOG parameters and search for windows that give a positive result from the classifier.  I also setup a sliding_window_pipe() funtion to run find_cars() multiple times for each sliding window area found above.  I ran this function on "test5.jpg" from the test images and got the following result:
+I then adapted the 'find_cars()' function from the course materials to take an image, window parameters, a classifier, and HOG parameters and search for windows that give a positive result from the classifier.  I also setup a 'sliding_window_pipe()' function to run 'find_cars()' multiple times for each sliding window area found above.  I ran this function on "test5.jpg" from the test images and got the following result:
 
 ![alt text][image4]
 
 #### Heat Maps and Rejecting False Positives
 
-As you can see above, my classifier was return a few false positives on the test image, but ultimately correctly classified several sample windows on the real cars.  In the section "Heat Map", I setup a heat map from the resulting set of found windows by combining several functions from the course materials into a create_heat_map() function.  In order to be part of the heat map, there must be enough overlapping windows to exceed the input threshold.  It then draws a final bounding box around "hot" areas.  I experimented with several thresholds, but with the number of overlapping detections on each car, I chose a value of 3.  This resulted in the following heat map and final image with bounding boxes drawn:
+As you can see above, my classifier flagged a few false positives on the test image, but also correctly classified several sample windows on the real cars.  In the section "Heat Map", I setup a heat map from the resulting set of found windows by combining several functions from the course materials into a 'create_heat_map()' function.  In order to be part of the heat map, there must be enough overlapping windows to exceed the input threshold.  It then draws a final bounding box around "hot" areas.  I experimented with several thresholds, but with the number of overlapping detections on each car, I chose a value of 3.  This resulted in the following heat map and final image with bounding boxes drawn:
 
 ![alt text][image5]
 
@@ -119,14 +119,14 @@ As you can see above, my classifier was return a few false positives on the test
 
 ### Initial Pipeline
 
-At this point, I was ready to combine the previous steps into a single image processing pipeline.  In the "Combined Initial Pipeline" section, I setup a process_image() function to be used in moviepy's fl_image() function, that applies a function to each image and replaces it with the result.  My pipeline detects all car windows using my sliding_window_pipe(), and then creates a heat map to draw a final set of bounding boxes on the found cars.  Also, for debugging, I added composite images of the heat map and the full set of detections from the classifier.  Finally, I added text to the screen to list how many cars are detected on screen.  I ran the pipeline on a frame from the test video and got this result: 
+At this point, I was ready to combine the previous steps into a single image processing pipeline.  In the "Combined Initial Pipeline" section, I setup a 'process_image()' function to be used in moviepy's 'fl_image()' function, that applies a function to each image and replaces it with the result.  My pipeline detects all car windows using my 'sliding_window_pipe()', and then creates a heat map to draw a final set of bounding boxes on the found cars.  Also, for debugging, I added composite images of the heat map and the full set of detections from the classifier.  Finally, I added text to the screen to list how many cars are detected on screen.  I ran the pipeline on a frame from the test video and got this result: 
 
 ![alt text][image6]
 ---
 
 #### Testing initial pipeline on project video
 
-Here's a [link to my initial video result](./project_video_out.mp4)
+Here's a [link to my initial video result](./project_video_out.mp4).
 
 ### Improving the Pipeline
 
@@ -136,7 +136,7 @@ Thus, I setup an improved pipeline that stored a history of bounding boxes found
 
 #### Testing improved pipeline on project video
 
-Here's a [link to my improved video result](./project_video_out_improved.mp4)
+Here's a [link to my improved video result](./project_video_out_improved.mp4).  As you can see, the results are much improved.
 
 ---
 
@@ -147,10 +147,8 @@ In general, this exercise showed both the power and limitations of simple classi
 ### Areas for Improvement
 
 #### Efficiency 
-I was surprised by how slow my pipeline was.  I initially chose an "ALL" HOG channel and got more consistent results when applying my classifier to test images, but the training, HOG extraction, and prediction on all 3 channels was so slow it would have taken _several_ hours to process the full project video (even after training was complete).  This kind of turnaround time was not conducive to any experimentation, and made me feel that my approach would not be usable in a real world environment.  Thus, I switch back to a single channel approach.  Perhaps a GPU could complete these processes faster and be able to process a video stream in real time, but it seemed like a stretch if all channels were used.  I also thought that a less exhaustive sliding window set could be used to reduce the amount of images that need to be processed, but when experimenting with this, I struggled to clearly detect cars with the heat map threshold due to the relatively high rate of false positives.   
+I was surprised by how slow my pipeline was.  I initially chose an "ALL" HOG channel and got more consistent results when applying my classifier to test images, but the training, HOG extraction, and prediction on all 3 channels was so slow it would have taken _several_ hours to process the full project video (even after training was complete).  This kind of turnaround time was not conducive to any experimentation, and made me feel that my approach would not be usable in a real world environment.  Thus, I switched back to a single HOG channel.  Perhaps a GPU could complete these operations fast enough to be able to process a video stream in real time, but it seemed like a stretch if all channels were used.  I also thought that a less exhaustive sliding window set could be used to reduce the amount of images that needed to be processed, but when experimenting with this, I struggled to cleanly separate the cars with the heat map threshold due to the relatively high rate of false positives.   
 
 #### Detection accuracy
-The combination of my extremely high test accuracy, yet fairly high instance of false positives when applied to the video made me concerned that my classifier was not generalizing well.  I could have tried additional HOG parameter tuning, SVM parameter tuning, or additional features (spatial, histogram, etc) to improve this.  Also, as noted in the tips for the project, the input training data included some time series data, which may have lead to overfitting, depending on the random split of training/test data.
-
-     
+Although I had an extremely high test accuracy on the training data, I also notice a fairly high instance of false positives when applied to the video.  Thus, I assume my classifier was not generalizing well.  I could have tried additional HOG parameter tuning, SVM parameter tuning, or additional features (spatial, histogram, etc) to improve this.  Also, as noted in the tips for the project, the input training data included some time series data, which may have lead to overfitting, depending on the random split of training/test data.  I could have manually separate the data in a better way and/or include more labeled images from other sources.  
 
