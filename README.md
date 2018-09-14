@@ -1,59 +1,72 @@
-## Writeup Template
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Vehicle Detection Project**
 
-The goals / steps of this project are the following:
+[//]: # (Image References)
+[image1]: ./examples/HOG_features.png
 
-* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
-* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
+The overall goal of this project was to overlay bounding boxes for vehicles onto a input video.  Here as an example frame from my final result:
+
+The specific goals / steps of this project are the following:
+
+* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a SVM classifier
+* Normalize features and randomize a selection for training and testing.
 * Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
+* Run your pipeline on a video stream and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
-[//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+## Source code
 
-## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
+All source code referenced below is contained in the [IPython notebook](./Detection.ipynb) in this repo.  See that notebook to follow along with the code changes described here. 
+
+## [Rubric Points](https://review.udacity.com/#!/rubrics/513/view)
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
-### Writeup / README
-
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
 
 ### Histogram of Oriented Gradients (HOG)
 
-#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
+#### Extracting HOG features from the training images
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+The code for this step is contained in the code cell of the IPython notebook under "Feature Extraction".  The get_hog_features() and  extract_hog_features() functions were mostly taken from the course materials to extract a set of HOG features from a given image.      
 
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+In the "Read in Images" section, I started by reading in all the `vehicle` and `non-vehicle` images from the provided data set.  In total, there were 8792 Car images, and 8958 non-car images.  
+
+I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.  Here is an example using the `YUV` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
 ![alt text][image1]
 
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
+#### HOG paramater choice
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
+I wanted to see how each of the color spaces and channels would fare when classifying the training data using a linear SVM. In the code section "Extract Feature Sets and Train a Linear SVM Classifier" I setup two functions to quickly extract all training and test sets using a given set of parameters, and then a function to train a linear classifer and report the training time and test accuracy.
 
+In the "Find Optimal Color Space and Hog Channel(s)" section, I setup a wrapper function that would run the above mentioned functions on an input array of color spaces and channels.  Here are my results:
 
-![alt text][image2]
-
-#### 2. Explain how you settled on your final choice of HOG parameters.
-
-I tried various combinations of parameters and...
+Color Space: HOG Channel | Accuracy
+========================================
+     HLS:0               | 90.20%
+     HLS:1               | 95.41%
+     HLS:2               | 87.84%
+     HLS:ALL             | 98.06%
+     HSV:0               | 89.84%
+     HSV:1               | 88.32%
+     HSV:2               | 95.52%
+     HSV:ALL             | 98.34%
+     LUV:0               | 94.06%
+     LUV:1               | 92.06%
+     LUV:2               | 88.68%
+     LUV:ALL             | 98.03%
+     RGB:0               | 93.78%
+     RGB:1               | 95.61%
+     RGB:2               | 94.68%
+     RGB:ALL             | 96.93%
+     YCrCb:0             | 94.54%
+     YCrCb:1             | 91.50%
+     YCrCb:2             | 89.98%
+     YCrCb:ALL           | 98.23%
+     YUV:0               | 94.65%
+     YUV:1               | 91.69%
+     YUV:2               | 89.86%
+     YUV:ALL             | 98.00%
+========================================
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
