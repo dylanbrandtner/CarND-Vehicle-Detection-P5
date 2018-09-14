@@ -48,31 +48,31 @@ I wanted to see how each of the color spaces and channels would fare when classi
 
 In the "Find Optimal Color Space and Hog Channel(s)" section, I setup a wrapper function that would run the above mentioned functions on an input array of color spaces and channels.  Here are my results:
 
- Color Space | HOG Channel | Accuracy
------------- | ----------- | ---------
-     HLS     |     0       |  90.20%
-     HLS     |     1       |  95.41%
-     HLS     |     2       |  87.84%
-     HLS     |    ALL      |  98.06%
-     HSV     |     0       |  89.84%
-     HSV     |     1       |  88.32%
-     HSV     |     2       |  95.52%
-     HSV     |    ALL      |  98.34%
-     LUV     |     0       |  94.06%
-     LUV     |     1       |  92.06%
-     LUV     |     2       |  88.68%
-     LUV     |    ALL      |  98.03%
-     RGB     |     0       |  93.78%
-     RGB     |     1       |  95.61%
-     RGB     |     2       |  94.68%
-     RGB     |    ALL      |  96.93%
-    YCrCb    |     0       |  94.54%
-    YCrCb    |     1       |  91.50%
-    YCrCb    |     2       |  89.98%
-    YCrCb    |    ALL      |  98.23%
-     YUV     |     0       |  94.65%
-     YUV     |     1       |  91.69%
-     YUV     |     2       |  89.86%
+| Color Space  | HOG Channel | Accuracy  |
+|:------------:|:-----------:|:---------:|
+|     HLS      |     0       |  90.20%   |
+|     HLS      |     1       |  95.41%   |
+|     HLS      |     2       |  87.84%   |
+|     HLS      |    ALL      |  98.06%   |
+|     HSV      |     0       |  89.84%   |
+|     HSV      |     1       |  88.32%   |
+|     HSV      |     2       |  95.52%   |
+|     HSV      |    ALL      |  98.34%   |
+|     LUV      |     0       |  94.06%   |
+|     LUV      |     1       |  92.06%   |
+|     LUV      |     2       |  88.68%   |
+|     LUV      |    ALL      |  98.03%   |
+|     RGB      |     0       |  93.78%   |
+|     RGB      |     1       |  95.61%   |
+|     RGB      |     2       |  94.68%   |
+|     RGB      |    ALL      |  96.93%   |
+|    YCrCb     |     0       |  94.54%   |
+|    YCrCb     |     1       |  91.50%   |
+|    YCrCb     |     2       |  89.98%   |
+|    YCrCb     |    ALL      |  98.23%   |
+|     YUV      |     0       |  94.65%   |
+|     YUV      |     1       |  91.69%   |
+|     YUV      |     2       |  89.86%   |
 
 Given this data, the examination of various color channels, and the training speeds, I chose YUV channel 0.  It had a high accuracy during the training, was a single channel (so that extracting the HOG features would be faster later), and it seemed to distinguish cars fairly well in my testing. 
 
@@ -92,12 +92,12 @@ I wanted to search different window positions at different scales.  To determine
 
 Under the "Configure sliding window pipeline" code section, I setup a draw_boxes() function (adapted from find_cars() in lesson materials) to see how the sliding windows would ultimately look on the images.  I came up with the following window areas and scales:
 
-    Zone   | Y Search area  |  Window Scale 
----------- | -------------- | --------------
-  Close    |    425, 650    |      3.5       
- Mid-Close |    400, 600    |       2       
-  Mid-Far  |    400, 550    |      1.5       
-   Far     |    400, 500    |       1      
+|    Zone    | Y Search area  |  Window Scale  |
+|:----------:|:--------------:|:--------------:|
+|  Close     |    425, 650    |      3.5       |
+| Mid-Close  |    400, 600    |       2        |
+|  Mid-Far   |    400, 550    |      1.5       |
+|   Far      |    400, 500    |       1        |
 
 Note: Window scale is multiplied by a 64x64 window.
 
