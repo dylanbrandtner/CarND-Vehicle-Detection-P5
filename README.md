@@ -1,9 +1,17 @@
-**Vehicle Detection Project**
+# Vehicle Detection Project
 
 [//]: # (Image References)
-[image1]: ./examples/HOG_features.png
+[image1]: ./output_images/HOG_features.png  "HOG"
+[image2]: ./output_images/Car_distance_examples.png  "Car Distances"
+[image3]: ./output_images/Car_distance_windows.png  "Windows"
+[image4]: ./output_images/found_cars.png  "Found Cars"
+[image5]: ./output_images/heatmap.png  "Heat map"
+[image6]: ./output_images/full_pipe.png "Full pipe"
+
 
 The overall goal of this project was to overlay bounding boxes for vehicles onto a input video.  Here as an example frame from my final result:
+
+![alt text][image6]
 
 The specific goals / steps of this project are the following:
 
@@ -34,88 +42,115 @@ I grabbed random images from each of the two classes and displayed them to get a
 
 ![alt text][image1]
 
-#### HOG paramater choice
+#### Choosing HOG Parameters
 
 I wanted to see how each of the color spaces and channels would fare when classifying the training data using a linear SVM. In the code section "Extract Feature Sets and Train a Linear SVM Classifier" I setup two functions to quickly extract all training and test sets using a given set of parameters, and then a function to train a linear classifer and report the training time and test accuracy.
 
 In the "Find Optimal Color Space and Hog Channel(s)" section, I setup a wrapper function that would run the above mentioned functions on an input array of color spaces and channels.  Here are my results:
 
-Color Space: HOG Channel | Accuracy
-========================================
-     HLS:0               | 90.20%
-     HLS:1               | 95.41%
-     HLS:2               | 87.84%
-     HLS:ALL             | 98.06%
-     HSV:0               | 89.84%
-     HSV:1               | 88.32%
-     HSV:2               | 95.52%
-     HSV:ALL             | 98.34%
-     LUV:0               | 94.06%
-     LUV:1               | 92.06%
-     LUV:2               | 88.68%
-     LUV:ALL             | 98.03%
-     RGB:0               | 93.78%
-     RGB:1               | 95.61%
-     RGB:2               | 94.68%
-     RGB:ALL             | 96.93%
-     YCrCb:0             | 94.54%
-     YCrCb:1             | 91.50%
-     YCrCb:2             | 89.98%
-     YCrCb:ALL           | 98.23%
-     YUV:0               | 94.65%
-     YUV:1               | 91.69%
-     YUV:2               | 89.86%
-     YUV:ALL             | 98.00%
-========================================
+ Color Space | HOG Channel | Accuracy
+------------ | ----------- | ---------
+     HLS     |     0       |  90.20%
+     HLS     |     1       |  95.41%
+     HLS     |     2       |  87.84%
+     HLS     |    ALL      |  98.06%
+     HSV     |     0       |  89.84%
+     HSV     |     1       |  88.32%
+     HSV     |     2       |  95.52%
+     HSV     |    ALL      |  98.34%
+     LUV     |     0       |  94.06%
+     LUV     |     1       |  92.06%
+     LUV     |     2       |  88.68%
+     LUV     |    ALL      |  98.03%
+     RGB     |     0       |  93.78%
+     RGB     |     1       |  95.61%
+     RGB     |     2       |  94.68%
+     RGB     |    ALL      |  96.93%
+    YCrCb    |     0       |  94.54%
+    YCrCb    |     1       |  91.50%
+    YCrCb    |     2       |  89.98%
+    YCrCb    |    ALL      |  98.23%
+     YUV     |     0       |  94.65%
+     YUV     |     1       |  91.69%
+     YUV     |     2       |  89.86%
 
-#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+Given this data, the examination of various color channels, and the training speeds, I chose YUV channel 0.  It had a high accuracy during the training, was a single channel (so that extracting the HOG features would be faster later), and it seemed to distinguish cars fairly well in my testing. 
 
-I trained a linear SVM using...
+#### Training the classifier
+
+In the code section "Training the final classifier" I trained a SVM using the GridSearchCV to find the best parameters.  This method chose a "RBF" kernel with a C value of 10, and I reached a final test accuracy of 99.44%.  
+
+The GridSearchCV() function took over 20 minutes to run, so at this point I stored my classifier in a pickle file that I could reload later. 
 
 ### Sliding Window Search
 
-#### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+#### Implementing the sliding window search
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+I wanted to search different window positions at different scales.  To determine the sets of sliding windows, I first grabbed images from the project video with cars at different distances:
+
+![alt text][image2]
+
+Under the "Configure sliding window pipeline" code section, I setup a draw_boxes() function (adapted from find_cars() in lesson materials) to see how the sliding windows would ultimately look on the images.  I came up with the following window areas and scales:
+
+    Zone   | Y Search area  |  Window Scale 
+---------- | -------------- | --------------
+  Close    |    425, 650    |      3.5       
+ Mid-Close |    400, 600    |       2       
+  Mid-Far  |    400, 550    |      1.5       
+   Far     |    400, 500    |       1      
+
+Note: Window scale is multiplied by a 64x64 window.
+
+I plotted the resulting boxes on the image:
 
 ![alt text][image3]
 
-#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
-
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+I then adapted the find_cars() function from the course materials to take an image, window parameters, a classifier, and HOG parameters and search for windows that give a positive result from the classifier.  I also setup a sliding_window_pipe() funtion to run find_cars() multiple times for each sliding window area found above.  I ran this function on "test5.jpg" from the test images and got the following result:
 
 ![alt text][image4]
----
 
-### Video Implementation
+#### Heat Maps and Rejecting False Positives
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
-
-
-#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
-
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
-### Here are six frames and their corresponding heatmaps:
+As you can see above, my classifier was return a few false positives on the test image, but ultimately correctly classified several sample windows on the real cars.  In the section "Heat Map", I setup a heat map from the resulting set of found windows by combining several functions from the course materials into a create_heat_map() function.  In order to be part of the heat map, there must be enough overlapping windows to exceed the input threshold.  It then draws a final bounding box around "hot" areas.  I experimented with several thresholds, but with the number of overlapping detections on each car, I chose a value of 3.  This resulted in the following heat map and final image with bounding boxes drawn:
 
 ![alt text][image5]
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
+## Video Pipeline
+
+### Initial Pipeline
+
+At this point, I was ready to combine the previous steps into a single image processing pipeline.  In the "Combined Initial Pipeline" section, I setup a process_image() function to be used in moviepy's fl_image() function, that applies a function to each image and replaces it with the result.  My pipeline detects all car windows using my sliding_window_pipe(), and then creates a heat map to draw a final set of bounding boxes on the found cars.  Also, for debugging, I added composite images of the heat map and the full set of detections from the classifier.  Finally, I added text to the screen to list how many cars are detected on screen.  I ran the pipeline on a frame from the test video and got this result: 
+
 ![alt text][image6]
+---
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+#### Testing initial pipeline on project video
 
+Here's a [link to my initial video result](./project_video_out.mp4)
 
+### Improving the Pipeline
+
+After viewing the initial results, it was clear that spurious detections were still exceeding my initial heat map threshold in some cases.  Rough patches in the road would sometimes trigger multiple overlapping detections which would show as a car.  My classifier could obviously use some more tuning to avoid these, but instead I chose to focus on separating them out based on the properties of cars on a highway. Since cars on a highway are traveling close to the same speed as the camera itself, they should stay in a more consistent location in each frame of the video image than a stationary object.
+
+Thus, I setup an improved pipeline that stored a history of bounding boxes found in each frame.  I then pass these bounding boxes into the same heat map function discussed above, and I set the threshold based on the size of the history.  I tuned the history size and threshold and eventually settled on a history of 20 frames and a threshold of history_size-5 (ie. 15 at most parts of the image).  Thus, the final bounding box drawn would only be ones that overlapped in 75% of the previous 20 frames.     
+
+#### Testing improved pipeline on project video
+
+Here's a [link to my improved video result](./project_video_out_improved.mp4)
 
 ---
 
-### Discussion
+## Discussion
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+In general, this exercise showed both the power and limitations of simple classifiers and traditional computer vision techniques.  I would be interested to see how much improvement I could get in initial detection by using a deep learning approach instead of a simple classifier.  I also found the heat mapping approach to be a great tool for filtering false positives when search areas overlap. 
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+### Areas for Improvement
+
+#### Efficiency 
+I was surprised by how slow my pipeline was.  I initially chose an "ALL" HOG channel and got more consistent results when applying my classifier to test images, but the training, HOG extraction, and prediction on all 3 channels was so slow it would have taken _several_ hours to process the full project video (even after training was complete).  This kind of turnaround time was not conducive to any experimentation, and made me feel that my approach would not be usable in a real world environment.  Thus, I switch back to a single channel approach.  Perhaps a GPU could complete these processes faster and be able to process a video stream in real time, but it seemed like a stretch if all channels were used.  I also thought that a less exhaustive sliding window set could be used to reduce the amount of images that need to be processed, but when experimenting with this, I struggled to clearly detect cars with the heat map threshold due to the relatively high rate of false positives.   
+
+#### Detection accuracy
+The combination of my extremely high test accuracy, yet fairly high instance of false positives when applied to the video made me concerned that my classifier was not generalizing well.  I could have tried additional HOG parameter tuning, SVM parameter tuning, or additional features (spatial, histogram, etc) to improve this.  Also, as noted in the tips for the project, the input training data included some time series data, which may have lead to overfitting, depending on the random split of training/test data.
+
+     
 
