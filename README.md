@@ -132,7 +132,7 @@ Here's a [link to my initial video result](./project_video_out.mp4).
 
 After viewing the initial results, it was clear that spurious detections were still exceeding my initial heat map threshold in some cases.  Rough patches in the road would sometimes trigger multiple overlapping detections which would show as a car.  My classifier could obviously use some more tuning to avoid these, but instead I chose to focus on separating them out based on the properties of cars on a highway. Since cars on a highway are traveling close to the same speed as the camera itself, they should stay in a more consistent location in each frame of the video image than a stationary object.
 
-Thus, I setup an improved pipeline that stored a history of bounding boxes found in each frame.  I then pass these bounding boxes into the same heat map function discussed above, and I set the threshold based on the size of the history.  I tuned the history size and threshold and eventually settled on a history of 20 frames and a threshold of history_size-5 (ie. 15 at most parts of the image).  Thus, the final bounding box drawn would only be ones that overlapped in 75% of the previous 20 frames.     
+Thus, I setup an improved pipeline that stored a history of bounding boxes found in each frame.  I then pass these bounding boxes into the same heat map function discussed above, and I set the threshold based on the size of the history.  I tuned the history size and threshold and eventually settled on a history of 15 frames and a threshold of history_size-5 (ie. 10 at most parts of the video).  Thus, the final bounding box drawn would only be ones that overlapped in 2/3 of the previous 15 frames.     
 
 #### Testing improved pipeline on project video
 
